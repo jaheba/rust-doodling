@@ -81,6 +81,12 @@ impl<'v> Visitor<'v> for NodeCounter {
     }
     fn visit_fn(&mut self, fk: FnKind<'v>, fd: &'v FnDecl, b: &'v Block, s: Span, _: NodeId) {
         self.count += 1;
+        match fk {
+            FnKind::ItemFn(ident, _, _, _, _, _) => {
+                println!("Function<{:?}>", ident.name);
+            },
+            _ => {}
+        }
         walk_fn(self, fk, fd, b, s)
     }
     fn visit_trait_item(&mut self, ti: &'v TraitItem) {

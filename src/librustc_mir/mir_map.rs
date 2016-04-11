@@ -38,6 +38,7 @@ use syntax::ast;
 use syntax::attr::AttrMetaMethods;
 use syntax::codemap::Span;
 
+
 pub fn build_mir_for_crate<'tcx>(tcx: &TyCtxt<'tcx>) -> MirMap<'tcx> {
     let mut map = MirMap {
         map: NodeMap(),
@@ -48,6 +49,28 @@ pub fn build_mir_for_crate<'tcx>(tcx: &TyCtxt<'tcx>) -> MirMap<'tcx> {
             map: &mut map,
         };
         tcx.visit_all_items_in_krate(DepNode::MirMapConstruction, &mut dump);
+    }
+    for key in map.map.keys() {
+
+        if let Some(value) = map.map.get(key) {
+            match value.return_ty {
+                ty::FnConverging(t) => {
+                    match t.sty {
+                        ty::TyBool => {
+                            println!("{:?}", "it's a bool");
+                        },
+
+                        ty::TyStruct(adt, _) => {
+                            for variant in &adt.variants {
+                                println!("{:?}", variant.name);
+                            }
+                        },
+                        _ => {}
+                    }
+                },
+                _ => {}
+            };
+        }
     }
     map
 }
