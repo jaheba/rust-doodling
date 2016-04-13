@@ -122,7 +122,8 @@ impl DepGraphThreadData {
         match message {
             DepMessage::Read(_) | DepMessage::Write(_) =>
                 if self.tasks_pushed.get() == 0 {
-                    self.invalid_message("read/write but no current task")
+                    // XXX: removed for easier debugging
+                    // self.invalid_message("read/write but no current task")
                 },
             DepMessage::PushTask(_) | DepMessage::PushIgnore =>
                 self.tasks_pushed.set(self.tasks_pushed.get() + 1),

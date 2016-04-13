@@ -38,6 +38,8 @@ use syntax::ast;
 use syntax::attr::AttrMetaMethods;
 use syntax::codemap::Span;
 
+use rustc::front::map::Node;
+use rustc_front::hir::Item;
 
 pub fn build_mir_for_crate<'tcx>(tcx: &TyCtxt<'tcx>) -> MirMap<'tcx> {
     let mut map = MirMap {
@@ -50,23 +52,31 @@ pub fn build_mir_for_crate<'tcx>(tcx: &TyCtxt<'tcx>) -> MirMap<'tcx> {
         };
         tcx.visit_all_items_in_krate(DepNode::MirMapConstruction, &mut dump);
     }
-    for key in map.map.keys() {
 
+    for key in map.map.keys() {
         if let Some(value) = map.map.get(key) {
             match value.return_ty {
                 ty::FnConverging(t) => {
-                    match t.sty {
-                        ty::TyBool => {
-                            println!("{:?}", "it's a bool");
-                        },
+                    if let Some(Node::NodeItem(item)) = tcx.map.find(key.to_owned()) {
+                        print!("{:?}", item.name);
 
-                        ty::TyStruct(adt, _) => {
-                            for variant in &adt.variants {
-                                println!("{:?}", variant.name);
+                        match t.sty {
+                            ty::TyBool => {
+                                println!(" returns a bool");
+                            },
+                            ty::TyStruct(adt, _) => {
+                                println!(" returns struct {:?} with fields:", tcx.item_path_str(adt.did));
+                                for variant in &adt.variants {
+                                    for field in &variant.fields {
+                                        println!("\t{:?}", field.name);
+                                    }
+                                }
+                            },
+                            _ => {
+                                println!(" {:?}", t.sty);
                             }
-                        },
-                        _ => {}
-                    }
+                        }
+                    };
                 },
                 _ => {}
             };
